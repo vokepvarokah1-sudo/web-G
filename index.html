@@ -7,32 +7,45 @@
     <link rel="stylesheet" href="style.css">
     
     <script data-ad-id="ads-main" src="https://ad-network-domain.com/adscript.js"></script>
+    
+    <div id="ad-banner-test-block"></div> 
 </head>
 <body>
 
-    <div id="adblock-warning-layer" class="full-screen-layer">
-        <div class="message-box">
-            <h1>🚫 Matikan AdBlock untuk Menonton</h1>
-            <p>Sistem ini dirancang untuk menukar akses konten dengan toleransi iklan. Jika Anda ingin menonton video, mohon matikan AdBlock Anda dan segarkan halaman.</p>
-        </div>
+    <div id="header">
+        <h1 class="logo">Random Stream</h1>
+        <a href="mailto:emailanda@example.com" class="btn header-btn">Pasang Iklan Anda di Sini</a>
     </div>
 
-    <div id="video-ad-container" class="player-container">
+    <div id="main-content-wrapper">
         
-        <video id="player-engine-placeholder" controls preload="auto" poster="loading.jpg"></video>
-        
-        <div id="ad-slot-click-trap" class="ad-slot">
-            <p>SLOT IKLAN BANNER BAWAH (Proyek 2 akan lebih agresif)</p>
+        <div class="ad-banner-row">
+            <div id="ad-slot-top-1" class="ad-slot">SLOT BANNER 1 (728x90)</div>
+            <div id="ad-slot-top-2" class="ad-slot">SLOT BANNER 2 (728x90)</div>
+        </div>
+
+        <div id="video-ad-player-container" class="player-container">
+            <div id="player-engine-placeholder" class="video-responsive-wrapper">
+                </div>
+        </div>
+
+        <div class="ad-banner-row">
+            <div id="ad-slot-bottom-3" class="ad-slot">SLOT BANNER 3 (728x90)</div>
+            <div id="ad-slot-bottom-4" class="ad-slot">SLOT BANNER 4 (728x90)</div>
         </div>
 
         <div class="navigation-buttons">
             <button id="next-btn" class="btn next-btn">▶️ Next Video</button>
             <a id="download-btn" href="#" target="_blank" class="btn download-btn">⬇️ Download (Via Safelinkku)</a>
         </div>
+        
+    </div> <div id="adblock-warning-layer" class="full-screen-layer" style="display:none;">
+        <div class="message-box">
+            <h1>🚫 Matikan AdBlock untuk Menonton</h1>
+            <p>Video player dan slot iklan ini berada dalam satu sistem yang terblokir. Jika iklan tidak boleh tampil, video juga tidak akan tampil. Mohon matikan AdBlock Anda.</p>
+        </div>
     </div>
     
-    <div id="banner_ad_test"></div> 
-
     <script src="script.js"></script>
 </body>
 </html>
