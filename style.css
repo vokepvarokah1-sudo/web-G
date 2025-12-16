@@ -1,76 +1,86 @@
-body {
-    margin: 0;
-    padding: 0;
-    background-color: #1a1a1a;
-    color: white;
-    font-family: Arial, sans-serif;
+/* ... (Style Body, HTML, Buttons sebelumnya) ... */
+
+/* --- Header --- */
+#header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 5%;
+    background-color: #222;
+    border-bottom: 3px solid #e50914;
 }
 
-/* --- Layering dan AdBlock Warning --- */
-.full-screen-layer {
-    position: fixed;
+.logo {
+    margin: 0;
+    font-size: 24px;
+    color: white;
+}
+
+/* --- Wrapper Konten Utama (Akan di-hide oleh JS saat AdBlock) --- */
+#main-content-wrapper {
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+}
+
+/* --- Slot Iklan --- */
+.ad-banner-row {
+    display: flex;
+    justify-content: space-around;
+    margin: 10px 0;
+}
+
+.ad-slot {
+    width: 48%; /* Bagi dua slot dalam satu baris */
+    height: 90px;
+    background-color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    border: 1px dashed #555;
+}
+
+/* --- Player Responsif 16:9 (Default Laptop/Desktop) --- */
+.video-responsive-wrapper {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%; /* Rasio 16:9 (9 / 16 * 100) */
+    background-color: #000;
+}
+
+.video-responsive-wrapper iframe {
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 100; /* Selalu di atas */
 }
 
-.message-box {
-    text-align: center;
-    padding: 30px;
-    border: 2px solid #e50914;
-    max-width: 80%;
+/* --- Media Query untuk Smartphone (Rasio 9:16) --- */
+@media (max-width: 768px) {
+    /* Player menjadi Vertikal 9:16 */
+    .video-responsive-wrapper {
+        padding-bottom: 177.77%; /* Rasio 9:16 (16 / 9 * 100) */
+    }
+
+    .ad-banner-row {
+        flex-direction: column; /* Iklan disusun vertikal di HP */
+    }
+
+    .ad-slot {
+        width: 100%;
+        margin-bottom: 10px;
+    }
 }
 
-/* --- Player Container & Kontrol --- */
-.player-container {
-    width: 90%; 
-    max-width: 1000px;
-    margin: 20px auto;
-    z-index: 50; /* Di bawah layer peringatan */
-    display: none; /* Default disembunyikan sampai AdBlock dicek */
-}
-
-#player-engine-placeholder {
-    width: 100%;
-    height: auto;
-    min-height: 400px;
-    background-color: #000;
-}
-
-.navigation-buttons {
-    margin: 20px 0;
-    text-align: center;
-}
-
-.btn {
-    padding: 10px 20px;
-    background-color: #e50914; 
-    color: white;
-    border: none;
-    cursor: pointer;
-    margin: 5px;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    display: inline-block;
-    transition: background-color 0.3s;
-}
-
-.btn:hover {
-    background-color: #ff0000;
-}
-
-/* --- AdBlock Test Element --- */
-#banner_ad_test {
+/* --- AdBlock Test Block --- */
+#ad-banner-test-block {
     width: 1px;
     height: 1px;
     overflow: hidden;
     position: absolute;
-    /* Teknik deteksi: AdBlock sering memblokir div ini */
+    /* ID ini adalah target yang pasti diblokir oleh AdBlock */
+    background-image: url('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
 }
