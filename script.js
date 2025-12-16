@@ -1,9 +1,10 @@
 // --- KONFIGURASI PROYEK ---
 // 🚨 PENTING: GANTI DENGAN URL RAW GIST JSON ANDA YANG SEBENARNYA!
-const GIST_RAW_URL = 'https://gist.githubusercontent.com/vokepvarokah1-sudo/e19d30781bf904e4419135f16a35092e/raw/c50ab1e32f20e0e1ceca3f3451aab4d026acf0c3'; 
-const PLAYER_ENGINE_BASE_URL = 'https://[username].github.io/player-engine/embed.html'; // 🚨 ASUMSI URL PROYEK 2
+const GIST_RAW_URL = 'https://gist.githubusercontent.com/vokepvarokah1-sudo/e19d30781bf904e4419135f16a35092e/raw/c50ab1e32f20e0e1ceca3f3451aab4d026acf0c3/'; 
+// const PLAYER_ENGINE_BASE_URL = 'https://[username].github.io/player-engine/embed.html'; // PROYEK 2 (DINONAKTIFKAN SEMENTARA)
+
 const CACHE_KEY = 'played_videos_cache';
-const COOLDOWN_MS = 200; // Jeda 200ms untuk deteksi AdBlock
+const COOLDOWN_MS = 200; 
 
 // --- ELEMEN DOM UNTUK OPERASI ---
 const MAIN_CONTENT_WRAPPER = document.getElementById('main-content-wrapper');
@@ -16,7 +17,7 @@ const PLAYER_PLACEHOLDER = document.getElementById('player-engine-placeholder');
 let videoList = [];
 
 // =========================================================
-// BAGIAN 1: MANAJEMEN DATA & CACHE (GIST & Randomizer)
+// BAGIAN 1: MANAJEMEN DATA & CACHE
 // =========================================================
 
 function loadCache() {
@@ -38,10 +39,11 @@ function saveCache(cache) {
 }
 
 function getRandomUnplayedVideo() {
+    if (videoList.length === 0) return null;
+
     let playedIds = loadCache();
     let unplayedVideos = videoList.filter(video => !playedIds.includes(video.id));
 
-    // Jika semua video sudah dimainkan, reset cache
     if (unplayedVideos.length === 0) {
         console.log("CACHE RESET: Memulai siklus baru.");
         playedIds = [];
@@ -51,7 +53,6 @@ function getRandomUnplayedVideo() {
     const randomIndex = Math.floor(Math.random() * unplayedVideos.length);
     const selectedVideo = unplayedVideos[randomIndex];
 
-    // Update cache
     playedIds.push(selectedVideo.id);
     saveCache(playedIds);
 
@@ -67,18 +68,17 @@ async function fetchVideoData() {
         videoList = await response.json();
         console.log(`Data Gist dimuat: ${videoList.length} video.`);
         
-        // Setelah data dimuat, kita bisa muat video acak
+        // Setelah data dimuat, kita bisa muat video acak jika AdBlock tidak aktif
         if (!checkAdBlockStatus()) {
             const videoData = getRandomUnplayedVideo();
-            updateUI(videoData);
+            if(videoData) updateUI(videoData);
         }
         
     } catch (e) {
         console.error("Gagal memuat data dari Gist:", e);
-        // Tampilkan pesan gagal loading jika AdBlock tidak aktif
         if (!checkAdBlockStatus()) {
              ADBLOCK_WARNING.querySelector('.message-box h1').textContent = '⚠️ Gagal Memuat Konten';
-             ADBLOCK_WARNING.querySelector('.message-box p').textContent = 'Tidak dapat terhubung ke sumber data video.';
+             ADBLOCK_WARNING.querySelector('.message-box p').textContent = 'Tidak dapat terhubung ke sumber data video. Cek Gist URL Anda.';
              ADBLOCK_WARNING.style.display = 'flex';
              MAIN_CONTENT_WRAPPER.style.display = 'none';
         }
@@ -86,10 +86,9 @@ async function fetchVideoData() {
 }
 
 // =========================================================
-// BAGIAN 2: LOGIKA DETEKSI ADBLOCK (Inti Perbaikan)
+// BAGIAN 2: LOGIKA DETEKSI ADBLOCK (Fix Final)
 // =========================================================
 
-// Fungsi murni untuk memeriksa status AdBlock saat ini
 function checkAdBlockStatus() {
     // Cek apakah elemen uji (yang dinamai seperti iklan) disembunyikan AdBlock
     const isHidden = getComputedStyle(ADBLOCK_TEST_ELEMENT).display === 'none' || 
@@ -99,30 +98,27 @@ function checkAdBlockStatus() {
     return isHidden;
 }
 
-// Fungsi yang memicu aksi berdasarkan status AdBlock
 function triggerAdBlockAction(loadNewVideo = false) {
     
-    // Memberikan jeda waktu agar AdBlock sempat memblokir elemen
+    // Memberikan jeda waktu agar AdBlock sempat memblokir filter
     setTimeout(() => {
         const isAdBlockActive = checkAdBlockStatus();
 
         if (isAdBlockActive) {
-            // --- ADBLOCK AKTIF (PLAYER DAN IKLAN DIHILANGKAN) ---
+            // --- ADBLOCK AKTIF ---
             MAIN_CONTENT_WRAPPER.style.display = 'none'; 
-            ADBLOCK_WARNING.style.display = 'flex';     // Tampilkan pesan warning
+            ADBLOCK_WARNING.style.display = 'flex';     
             console.log("DETEKSI ADBLOCK: AKTIF. Konten disembunyikan.");
         } else {
-            // --- ADBLOCK NON-AKTIF (PLAYER TAMPIL) ---
+            // --- ADBLOCK NON-AKTIF ---
             MAIN_CONTENT_WRAPPER.style.display = 'block'; 
-            ADBLOCK_WARNING.style.display = 'none';      // Sembunyikan pesan warning
+            ADBLOCK_WARNING.style.display = 'none';      
             
-            // Muat video jika diminta atau jika belum ada
             if (loadNewVideo || PLAYER_PLACEHOLDER.innerHTML === '') {
                  if (videoList.length > 0) {
                      const videoData = getRandomUnplayedVideo();
-                     updateUI(videoData);
+                     if(videoData) updateUI(videoData);
                  } else {
-                     // Jika data belum dimuat, coba ambil data Gist
                      fetchVideoData(); 
                  }
             }
@@ -135,33 +131,40 @@ function triggerAdBlockAction(loadNewVideo = false) {
 // =========================================================
 
 function updateUI(videoObject) {
-    // Membangun URL iframe ke Proyek 2 (Player Engine)
-    // Menggunakan encodeURIComponent agar URL video aman dikirim
-    const playerEngineUrl = `${PLAYER_ENGINE_BASE_URL}?v=${encodeURIComponent(videoObject.play)}`;
+    // --- MODE PENGUJIAN VIDEO LANGSUNG (TANPA IFRAME PROYEK 2) ---
+    // Pastikan #player-engine-placeholder ada di index.html!
     
-    // Ganti div placeholder dengan iframe Proyek 2
     PLAYER_PLACEHOLDER.innerHTML = 
-        `<iframe src="${playerEngineUrl}" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>`;
-    
+        `<video id="test-video-player" controls preload="auto" width="100%" height="100%" playsinline>
+             <source src="${videoObject.play}" type="video/mp4">
+             Maaf, browser Anda tidak mendukung tag video.
+         </video>`;
+         
+    // Pastikan video memenuhi div responsif
+    const videoElement = document.getElementById('test-video-player');
+    if (videoElement) {
+        videoElement.style.position = 'absolute'; // Style dari CSS responsif
+        videoElement.style.top = '0';
+        videoElement.style.left = '0';
+    }
+
     // Sinkronisasi: Update tombol Download ke Safelink
     DOWNLOAD_BTN.href = videoObject.download;
     
-    console.log(`Video ID: ${videoObject.id} dimuat. Player disinkronkan ke Proyek 2.`);
+    console.log(`Video ID: ${videoObject.id} dimuat LANGSUNG untuk TESTING.`);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Ambil data Gist terlebih dahulu
+    // 1. Ambil data Gist dan cek AdBlock saat halaman dimuat
     fetchVideoData();
 
     // 2. Event Listener untuk Tombol Next
     NEXT_BTN.addEventListener('click', () => {
-        // Panggil aksi AdBlock dan minta muat video baru (true)
-        triggerAdBlockAction(true); 
+        triggerAdBlockAction(true); // Meminta muat video baru
     });
     
-    // 3. Event listener untuk download
+    // 3. Prevent Download jika AdBlock aktif
     DOWNLOAD_BTN.addEventListener('click', (e) => {
-        // Cek AdBlock sebelum mengizinkan klik download
         if (checkAdBlockStatus()) {
              e.preventDefault();
              alert("Mohon matikan AdBlock Anda untuk melanjutkan ke proses Download.");
