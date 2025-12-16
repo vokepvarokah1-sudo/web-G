@@ -1,10 +1,10 @@
 // --- KONFIGURASI PROYEK ---
 // 🚨 PENTING: GANTI DENGAN URL RAW GIST JSON ANDA YANG SEBENARNYA!
-const GIST_RAW_URL = 'https://gist.githubusercontent.com/vokepvarokah1-sudo/e19d30781bf904e4419135f16a35092e/raw/c50ab1e32f20e0e1ceca3f3451aab4d026acf0c3/'; 
+const GIST_RAW_URL = 'https://gist.githubusercontent.com/vokepvarokah1-sudo/e19d30781bf904e4419135f16a35092e/raw/c50ab1e32f20e0e1ceca3f3451aab4d026acf0c3'; 
 // const PLAYER_ENGINE_BASE_URL = 'https://[username].github.io/player-engine/embed.html'; // PROYEK 2 (DINONAKTIFKAN SEMENTARA)
 
 const CACHE_KEY = 'played_videos_cache';
-const COOLDOWN_MS = 200; 
+const COOLDOWN_MS = 400; // Jeda dinaikkan menjadi 400ms untuk AdBlocker yang lambat
 
 // --- ELEMEN DOM UNTUK OPERASI ---
 const MAIN_CONTENT_WRAPPER = document.getElementById('main-content-wrapper');
@@ -68,7 +68,6 @@ async function fetchVideoData() {
         videoList = await response.json();
         console.log(`Data Gist dimuat: ${videoList.length} video.`);
         
-        // Setelah data dimuat, kita bisa muat video acak jika AdBlock tidak aktif
         if (!checkAdBlockStatus()) {
             const videoData = getRandomUnplayedVideo();
             if(videoData) updateUI(videoData);
@@ -86,11 +85,11 @@ async function fetchVideoData() {
 }
 
 // =========================================================
-// BAGIAN 2: LOGIKA DETEKSI ADBLOCK (Fix Final)
+// BAGIAN 2: LOGIKA DETEKSI ADBLOCK (Fix Final Versi 2)
 // =========================================================
 
 function checkAdBlockStatus() {
-    // Cek apakah elemen uji (yang dinamai seperti iklan) disembunyikan AdBlock
+    // Pengecekan dimensi/visibilitas elemen yang dinamai seperti iklan
     const isHidden = getComputedStyle(ADBLOCK_TEST_ELEMENT).display === 'none' || 
                      ADBLOCK_TEST_ELEMENT.offsetHeight === 0 ||
                      ADBLOCK_TEST_ELEMENT.offsetWidth === 0;
@@ -100,20 +99,21 @@ function checkAdBlockStatus() {
 
 function triggerAdBlockAction(loadNewVideo = false) {
     
-    // Memberikan jeda waktu agar AdBlock sempat memblokir filter
+    // Timeout memberikan waktu bagi AdBlocker untuk memblokir elemen setelah DOMContentLoaded
     setTimeout(() => {
         const isAdBlockActive = checkAdBlockStatus();
 
         if (isAdBlockActive) {
-            // --- ADBLOCK AKTIF ---
+            // --- ADBLOCK AKTIF (Player dan Iklan Hilang) ---
             MAIN_CONTENT_WRAPPER.style.display = 'none'; 
             ADBLOCK_WARNING.style.display = 'flex';     
             console.log("DETEKSI ADBLOCK: AKTIF. Konten disembunyikan.");
         } else {
-            // --- ADBLOCK NON-AKTIF ---
+            // --- ADBLOCK NON-AKTIF (Konten Tampil) ---
             MAIN_CONTENT_WRAPPER.style.display = 'block'; 
             ADBLOCK_WARNING.style.display = 'none';      
             
+            // Lanjutkan muat video jika diminta atau jika belum ada
             if (loadNewVideo || PLAYER_PLACEHOLDER.innerHTML === '') {
                  if (videoList.length > 0) {
                      const videoData = getRandomUnplayedVideo();
@@ -132,7 +132,7 @@ function triggerAdBlockAction(loadNewVideo = false) {
 
 function updateUI(videoObject) {
     // --- MODE PENGUJIAN VIDEO LANGSUNG (TANPA IFRAME PROYEK 2) ---
-    // Pastikan #player-engine-placeholder ada di index.html!
+    // Ketika Proyek 2 selesai, kode ini akan diganti dengan iframe ke Proyek 2.
     
     PLAYER_PLACEHOLDER.innerHTML = 
         `<video id="test-video-player" controls preload="auto" width="100%" height="100%" playsinline>
@@ -140,10 +140,10 @@ function updateUI(videoObject) {
              Maaf, browser Anda tidak mendukung tag video.
          </video>`;
          
-    // Pastikan video memenuhi div responsif
     const videoElement = document.getElementById('test-video-player');
     if (videoElement) {
-        videoElement.style.position = 'absolute'; // Style dari CSS responsif
+        // Gaya untuk memastikan video mengisi container responsif
+        videoElement.style.position = 'absolute'; 
         videoElement.style.top = '0';
         videoElement.style.left = '0';
     }
@@ -165,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 3. Prevent Download jika AdBlock aktif
     DOWNLOAD_BTN.addEventListener('click', (e) => {
+        // Cek AdBlock status SEBELUM navigasi
         if (checkAdBlockStatus()) {
              e.preventDefault();
              alert("Mohon matikan AdBlock Anda untuk melanjutkan ke proses Download.");
